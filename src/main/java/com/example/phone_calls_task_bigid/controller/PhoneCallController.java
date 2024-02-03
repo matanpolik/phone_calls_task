@@ -1,5 +1,6 @@
 package com.example.phone_calls_task_bigid.controller;
 
+import com.example.phone_calls_task_bigid.model.DTO.PhoneCallDTO;
 import com.example.phone_calls_task_bigid.model.PhoneCall;
 import com.example.phone_calls_task_bigid.service.ContactService;
 import com.example.phone_calls_task_bigid.service.PhoneCallService;
@@ -26,9 +27,9 @@ public class PhoneCallController {
     }
 
     /////-------- API #1 : ADD NEW PHONE CALL TO THE DB --------/////
-    @PostMapping("new-call")
-    public void savePhoneCall(@RequestBody @Valid PhoneCall phoneCall){
-        phoneCallService.savePhoneCall(phoneCall);
+    @PostMapping("/new-call")
+    public void savePhoneCall(@RequestBody @Valid PhoneCallDTO phoneCallDTO){
+        phoneCallService.savePhoneCall(phoneCallDTO);
     }
 
     /////-------- API #2 : GET ALL PHONE CALLS FROM SPECIFIC NUMBER --------/////

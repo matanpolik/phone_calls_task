@@ -5,16 +5,16 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 @Entity
 @Table(name = "blacklist")
-public class Blacklist {
+public class BlockedNumber {
 
     @Id
     @Column(name = "phoneNumber")
     private String phoneNumber;
 
     // Constructors, getters, and setters
-    public Blacklist() {}
+    public BlockedNumber() {}
 
-    public Blacklist(String phoneNumber) {
+    public BlockedNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
     }
 

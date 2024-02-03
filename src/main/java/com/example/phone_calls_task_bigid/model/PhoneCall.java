@@ -2,6 +2,7 @@ package com.example.phone_calls_task_bigid.model;
 import javax.persistence.*;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.Pattern;
+import java.util.Date;
 
 
 @Entity
@@ -12,7 +13,8 @@ public class PhoneCall {
     @Column(name = "id")
     private Long id;
     @Column(name = "time")
-    private String time;
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date time;
     @Column(name = "callType")
     private String callType; // incoming or outgoing call
     @Column(name = "duration")
@@ -27,7 +29,7 @@ public class PhoneCall {
     public PhoneCall() {
     }
 
-    public PhoneCall(String time, String callType, String duration, String phoneNumber, boolean savedContact) {
+    public PhoneCall(Date time, String callType, String duration, String phoneNumber, boolean savedContact) {
         this.time = time;
         this.callType = callType;
         this.duration = Integer.parseInt(duration);
@@ -43,14 +45,8 @@ public class PhoneCall {
         return id;
     }
 
-    public String getTime() {
-        return time;
-    }
-
-    public void setTime(String time) {
-        this.time = time;
-    }
-
+    public Date getTime() {return time;}
+    public void setTime(Date time) {this.time = time;}
     public String getCallType() {
         return callType;
     }

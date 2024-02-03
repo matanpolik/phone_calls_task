@@ -3,7 +3,7 @@ import java.io.InputStream;
 /**
  * Service interface for managing phone numbers in the blacklist.
  */
-public interface BlacklistService {
+public interface BlockedNumberService {
     /**
      * Loads phone numbers from a CSV file into the blacklist.
      *

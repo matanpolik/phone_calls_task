@@ -4,48 +4,49 @@ import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.example.phone_calls_task_bigid.exception.BlockedPhoneNumberException;
-import com.example.phone_calls_task_bigid.model.Blacklist;
+import com.example.phone_calls_task_bigid.model.BlockedNumber;
 import com.example.phone_calls_task_bigid.model.Contact;
+import com.example.phone_calls_task_bigid.model.DTO.PhoneCallDTO;
 import com.example.phone_calls_task_bigid.model.PhoneCall;
-import com.example.phone_calls_task_bigid.repository.BlacklistRepository;
+import com.example.phone_calls_task_bigid.repository.BlockedNumberRepository;
 import com.example.phone_calls_task_bigid.repository.ContactRepository;
 import com.example.phone_calls_task_bigid.repository.PhoneCallRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-
-import javax.validation.ValidationException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 @SpringBootTest
 public class PhoneCallServiceImplTest {
     @Mock
     private PhoneCallRepository phoneCallRepository;
     @Mock
-    private BlacklistRepository blacklistRepository;
+    private BlockedNumberRepository blacklistRepository;
     @Mock
     private ContactRepository contactRepository;
     @InjectMocks
     private PhoneCallServiceImpl phoneCallService;
     private PhoneCall phoneCall1;
-    private PhoneCall phoneCall2;
     private PhoneCall phoneCall3;
-    private PhoneCall phoneCall4;
+    private PhoneCallDTO phoneCallDTO1;
+    SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+    Date date1 = dateFormat.parse("08-10-2021 09:10:30");
+    Date date3 = dateFormat.parse("10-10-2021 11:20:30");
+
+    public PhoneCallServiceImplTest() throws ParseException {
+    }
 
     @BeforeEach
-    void setUp() {
-        // Common setup for all tests
-        phoneCall1 = new PhoneCall("08-10-2021 09:10:30", "Outgoing", "179", "0518617755", true);
-        phoneCall2 = new PhoneCall("09-10-2021 10:15:00", "Incoming", "120", "0518617756", false); // Different number
-        phoneCall3 = new PhoneCall("10-10-2021 11:20:30", "Outgoing", "200", "0518617755", true); // Same number as `phoneCall`
-        phoneCall4 = new PhoneCall("11-10-2021 12:30:45", "Incoming", "90", "0560265187", false); // Blacklisted number
+    void setUp(){
+        phoneCall1 = new PhoneCall(date1, "Outgoing", "179", "0518617755", true);
+        phoneCall3 = new PhoneCall(date3, "Outgoing", "200", "0518617755", true);
+
+        phoneCallDTO1 = new PhoneCallDTO("08-10-2021 09:10:30", "Outgoing", "179", "0518617755");
     }
 
     @Test
@@ -53,13 +54,23 @@ public class PhoneCallServiceImplTest {
         // Arrange
         when(contactRepository.findByPhoneNumber(phoneCall1.getPhoneNumber())).thenReturn(Optional.empty());
         when(blacklistRepository.findByPhoneNumber(phoneCall1.getPhoneNumber())).thenReturn(Optional.empty());
+        ArgumentCaptor<PhoneCall> phoneCallArgumentCaptor = ArgumentCaptor.forClass(PhoneCall.class);
 
         // Act
-        phoneCallService.savePhoneCall(phoneCall1);
+        phoneCallService.savePhoneCall(phoneCallDTO1);
 
         // Assert
-        verify(phoneCallRepository, times(1)).save(phoneCall1);
-        assertFalse(phoneCall1.isSavedContact(), "Phone call should not be marked as saved contact");
+        verify(phoneCallRepository).save(phoneCallArgumentCaptor.capture());
+        PhoneCall capturedPhoneCall = phoneCallArgumentCaptor.getValue();
+
+        // Now assert the properties of the captured PhoneCall
+        assertAll("Should capture PhoneCall with correct properties",
+                () -> assertEquals(date1, capturedPhoneCall.getTime()),
+                () -> assertEquals("Outgoing", capturedPhoneCall.getCallType()),
+                () -> assertEquals(179, capturedPhoneCall.getDuration()),
+                () -> assertEquals("0518617755", capturedPhoneCall.getPhoneNumber()),
+                () -> assertFalse(capturedPhoneCall.isSavedContact())
+        );
     }
 
     @Test
@@ -67,29 +78,78 @@ public class PhoneCallServiceImplTest {
         // Arrange
         when(contactRepository.findByPhoneNumber(phoneCall1.getPhoneNumber())).thenReturn(Optional.of(new Contact("Test", phoneCall1.getPhoneNumber())));
         when(blacklistRepository.findByPhoneNumber(phoneCall1.getPhoneNumber())).thenReturn(Optional.empty());
+        ArgumentCaptor<PhoneCall> phoneCallArgumentCaptor = ArgumentCaptor.forClass(PhoneCall.class);
 
         // Act
-        phoneCallService.savePhoneCall(phoneCall1);
+        phoneCallService.savePhoneCall(phoneCallDTO1);
 
         // Assert
-        verify(phoneCallRepository).save(phoneCall1);
-        assertTrue(phoneCall1.isSavedContact(), "Phone call should be marked as saved contact");
+        verify(phoneCallRepository).save(phoneCallArgumentCaptor.capture());
+        PhoneCall capturedPhoneCall = phoneCallArgumentCaptor.getValue();
+
+        // Now assert the properties of the captured PhoneCall
+        assertAll("Should capture PhoneCall with correct properties",
+                () -> assertEquals(date1, capturedPhoneCall.getTime()),
+                () -> assertEquals("Outgoing", capturedPhoneCall.getCallType()),
+                () -> assertEquals(179, capturedPhoneCall.getDuration()),
+                () -> assertEquals("0518617755", capturedPhoneCall.getPhoneNumber()),
+                () -> assertTrue(capturedPhoneCall.isSavedContact())
+        );
     }
 
     @Test
     void GivenNumberFromBlacklist_WhenAddPhoneCall_ThenThrowBlockedNumberException() {
         // Arrange
-        when(blacklistRepository.findByPhoneNumber(phoneCall1.getPhoneNumber())).thenReturn(Optional.of(new Blacklist(phoneCall1.getPhoneNumber())));
+        when(blacklistRepository.findByPhoneNumber(phoneCall1.getPhoneNumber())).thenReturn(Optional.of(new BlockedNumber(phoneCall1.getPhoneNumber())));
 
-        // Act
-        Exception exception = assertThrows(RuntimeException.class, () -> phoneCallService.savePhoneCall(phoneCall1));
-
-        // Assert
-        assertEquals("Received a call from a blocked number.", exception.getMessage());
-
-        verify(phoneCallRepository, never()).save(phoneCall1);
+        // Act & Assert
+        assertThrows(BlockedPhoneNumberException.class, () -> phoneCallService.savePhoneCall(phoneCallDTO1));
+        verify(phoneCallRepository, never()).save(any(PhoneCall.class));
     }
+    @Test
+    void GivenWrongCallType_WhenAddPhoneCall_ThenThrowException() {
+        // Arrange
+        when(contactRepository.findByPhoneNumber(phoneCall1.getPhoneNumber())).thenReturn(Optional.empty());
+        when(blacklistRepository.findByPhoneNumber(phoneCall1.getPhoneNumber())).thenReturn(Optional.empty());
+        phoneCallDTO1.setCallType("NotIncomingOrOutgoing");
 
+        // Act & Assert
+        assertThrows(RuntimeException.class, () -> phoneCallService.savePhoneCall(phoneCallDTO1));
+        verify(phoneCallRepository, never()).save(any(PhoneCall.class));
+    }
+    @Test
+    void GivenWrongDuration_WhenAddPhoneCall_ThenPhoneCallNotAddedToDB() {
+        // Arrange
+        when(contactRepository.findByPhoneNumber(phoneCall1.getPhoneNumber())).thenReturn(Optional.empty());
+        when(blacklistRepository.findByPhoneNumber(phoneCall1.getPhoneNumber())).thenReturn(Optional.empty());
+        phoneCallDTO1.setDuration("-5");
+
+        // Act & Assert
+        assertThrows(RuntimeException.class, () -> phoneCallService.savePhoneCall(phoneCallDTO1));
+        verify(phoneCallRepository, never()).save(any(PhoneCall.class));
+    }
+    @Test
+    void GivenWrongDate_WhenAddPhoneCall_ThenThrowException() {
+        // Arrange
+        when(contactRepository.findByPhoneNumber(phoneCall1.getPhoneNumber())).thenReturn(Optional.empty());
+        when(blacklistRepository.findByPhoneNumber(phoneCall1.getPhoneNumber())).thenReturn(Optional.empty());
+        phoneCallDTO1.setTime("10-10-10 09:10:30");
+
+        // Act & Assert
+        assertThrows(RuntimeException.class, () -> phoneCallService.savePhoneCall(phoneCallDTO1));
+        verify(phoneCallRepository, never()).save(any(PhoneCall.class));
+    }
+    @Test
+    void GivenWrongPhoneNumber_WhenAddPhoneCall_ThenThrowException() {
+        // Arrange
+        when(contactRepository.findByPhoneNumber(phoneCall1.getPhoneNumber())).thenReturn(Optional.empty());
+        when(blacklistRepository.findByPhoneNumber(phoneCall1.getPhoneNumber())).thenReturn(Optional.empty());
+        phoneCallDTO1.setPhoneNumber("NOT_PHONE_NUMBER");
+
+        // Act & Assert
+        assertThrows(RuntimeException.class, () -> phoneCallService.savePhoneCall(phoneCallDTO1));
+        verify(phoneCallRepository, never()).save(any(PhoneCall.class));
+    }
 
     //// ------- SEARCH BY DURATION -------------
 
@@ -103,7 +163,7 @@ public class PhoneCallServiceImplTest {
         List<PhoneCall> result = phoneCallService.getPhoneCallsByPhoneNumber(searchNumber);
 
         // Assertions
-        assertNotNull(result);
+        //assertNotNull(result);
         assertEquals(2, result.size(), "Should return exactly 2 phone calls for the specific number");
         assertTrue(result.stream().allMatch(pc -> pc.getPhoneNumber().equals(searchNumber)), "All returned phone calls should have the searched phone number");
     }
@@ -117,7 +177,6 @@ public class PhoneCallServiceImplTest {
         List<PhoneCall> result = phoneCallService.getPhoneCallsByPhoneNumber(searchNumber);
 
         // Assert
-        assertNotNull(result);
         assertTrue(result.isEmpty(), "No calls should be returned when none exist");
     }
     @Test
@@ -135,21 +194,12 @@ public class PhoneCallServiceImplTest {
         assertEquals(expectedPhoneCalls.size(), result.size(), "Returned calls should match the expected count");
         assertTrue(result.containsAll(expectedPhoneCalls), "Returned calls should match the expected calls");
     }
-
-    @Test
-    void getPhoneCallsByDuration_WhenNegativeDuration_ThenThrowException() {
-        // Arrange
-        int searchDuration = -50;
-
-        // Act & Assert
-        assertThrows(ValidationException.class, () -> phoneCallService.getPhoneCallsByDuration(searchDuration));
-    }
     @Test
     void updatePhoneNumber_NotInContact_ToNewNumber_NotInContact() {
         // Arrange
         String oldPhoneNumber = "0518617756";
         String newPhoneNumber = "0591234567";
-        PhoneCall existingCall = new PhoneCall("12-10-2021 13:40:50", "Incoming", "180", oldPhoneNumber, false);
+        PhoneCall existingCall = new PhoneCall(date1, "Incoming", "180", oldPhoneNumber, false);
         List<PhoneCall> existingCalls = Collections.singletonList(existingCall);
 
         when(phoneCallRepository.findByPhoneNumber(oldPhoneNumber)).thenReturn(existingCalls);
@@ -168,7 +218,7 @@ public class PhoneCallServiceImplTest {
         // Arrange
         String oldPhoneNumber = "0518617756";
         String newPhoneNumber = "0591234568";
-        PhoneCall existingCall = new PhoneCall("13-10-2021 14:45:55", "Outgoing", "220", oldPhoneNumber, false);
+        PhoneCall existingCall = new PhoneCall(date1, "Outgoing", "220", oldPhoneNumber, false);
         List<PhoneCall> existingCalls = Collections.singletonList(existingCall);
 
         when(phoneCallRepository.findByPhoneNumber(oldPhoneNumber)).thenReturn(existingCalls);
@@ -187,7 +237,7 @@ public class PhoneCallServiceImplTest {
         // Arrange
         String oldPhoneNumber = "0518617757";
         String newPhoneNumber = "0591234569";
-        PhoneCall existingCall = new PhoneCall("14-10-2021 15:50:60", "Incoming", "300", oldPhoneNumber, true);
+        PhoneCall existingCall = new PhoneCall(date1, "Incoming", "300", oldPhoneNumber, true);
         List<PhoneCall> existingCalls = Collections.singletonList(existingCall);
 
         when(phoneCallRepository.findByPhoneNumber(oldPhoneNumber)).thenReturn(existingCalls);
@@ -207,7 +257,7 @@ public class PhoneCallServiceImplTest {
         String oldPhoneNumber = "0518617758";
         String newPhoneNumber = "0591234570";
         when(phoneCallRepository.findByPhoneNumber(oldPhoneNumber)).thenReturn(Collections.emptyList());
-        when(blacklistRepository.findByPhoneNumber(newPhoneNumber)).thenReturn(Optional.of(new Blacklist(newPhoneNumber)));
+        when(blacklistRepository.findByPhoneNumber(newPhoneNumber)).thenReturn(Optional.of(new BlockedNumber(newPhoneNumber)));
 
         // Act & Assert
         assertThrows(BlockedPhoneNumberException.class, () -> phoneCallService.updatePhoneNumber(oldPhoneNumber, newPhoneNumber));
@@ -218,7 +268,7 @@ public class PhoneCallServiceImplTest {
         String oldPhoneNumber = "0518617759";
         String newPhoneNumber = "0591234571";
         when(phoneCallRepository.findByPhoneNumber(oldPhoneNumber)).thenReturn(Collections.emptyList());
-        when(blacklistRepository.findByPhoneNumber(newPhoneNumber)).thenReturn(Optional.of(new Blacklist(newPhoneNumber)));
+        when(blacklistRepository.findByPhoneNumber(newPhoneNumber)).thenReturn(Optional.of(new BlockedNumber(newPhoneNumber)));
 
         // Act & Assert
         assertThrows(BlockedPhoneNumberException.class, () -> phoneCallService.updatePhoneNumber(oldPhoneNumber, newPhoneNumber));

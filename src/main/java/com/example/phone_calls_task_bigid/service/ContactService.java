@@ -14,12 +14,6 @@ public interface ContactService {
     void loadContactsFromCsv(InputStream inputStream);
 
     /**
-     * Retrieves all contacts from the database.
-     *
-     * @return A list of all contacts.
-     */
-    List<Contact> getAllContacts();
-    /**
      * Updates the phone number of an existing contact.
      *
      * @param oldPhoneNumber The current phone number of the contact to be updated.

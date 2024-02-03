@@ -1,20 +1,19 @@
 package com.example.phone_calls_task_bigid.service.impl;
-import com.example.phone_calls_task_bigid.model.Blacklist;
-import com.example.phone_calls_task_bigid.repository.BlacklistRepository;
-import com.example.phone_calls_task_bigid.service.BlacklistService;
+import com.example.phone_calls_task_bigid.model.BlockedNumber;
+import com.example.phone_calls_task_bigid.repository.BlockedNumberRepository;
+import com.example.phone_calls_task_bigid.service.BlockedNumberService;
 import com.opencsv.CSVReader;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
 @Service
-public class BlacklistServiceImpl implements BlacklistService {
+public class BlockedNumberServiceImpl implements BlockedNumberService {
 
-    private final BlacklistRepository blacklistRepository;
+    private final BlockedNumberRepository blacklistRepository;
 
-    public BlacklistServiceImpl(BlacklistRepository blacklistRepository) {
+    public BlockedNumberServiceImpl(BlockedNumberRepository blacklistRepository) {
         this.blacklistRepository = blacklistRepository;
     }
 
@@ -35,7 +34,7 @@ public class BlacklistServiceImpl implements BlacklistService {
 
                         // Check if the phone number is not already in the blacklist
                         if (!blacklistRepository.existsById(phoneNumber)) {
-                            Blacklist blacklist = new Blacklist(phoneNumber);
+                            BlockedNumber blacklist = new BlockedNumber(phoneNumber);
                             blacklistRepository.save(blacklist);
                         }
                     }

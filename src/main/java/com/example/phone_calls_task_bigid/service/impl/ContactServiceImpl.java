@@ -5,11 +5,8 @@ import com.example.phone_calls_task_bigid.service.ContactService;
 import com.opencsv.CSVReader;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -56,13 +53,6 @@ public class ContactServiceImpl implements ContactService {
             throw new RuntimeException("Error loading contacts from CSV: " + e.getMessage(), e);
         }
     }
-
-
-    @Override
-    public List<Contact> getAllContacts() {
-        return contactRepository.findAll();
-    }
-
     @Override
     @Transactional
     public void updatePhoneNumber(String oldPhoneNumber, String newPhoneNumber) {
@@ -73,5 +63,4 @@ public class ContactServiceImpl implements ContactService {
             contactRepository.save(contact);
         });
     }
-
 }

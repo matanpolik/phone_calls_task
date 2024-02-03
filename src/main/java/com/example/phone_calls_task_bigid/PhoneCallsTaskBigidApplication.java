@@ -1,13 +1,12 @@
 package com.example.phone_calls_task_bigid;
 
 import com.example.phone_calls_task_bigid.service.ContactService;
-import com.example.phone_calls_task_bigid.service.BlacklistService;
+import com.example.phone_calls_task_bigid.service.BlockedNumberService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
-
 import java.io.InputStream;
 
 @SpringBootApplication
@@ -17,7 +16,7 @@ public class PhoneCallsTaskBigidApplication {
     private ContactService contactService;
 
     @Autowired
-    private BlacklistService blacklistService;
+    private BlockedNumberService blacklistService;
 
     public static void main(String[] args) {
         SpringApplication.run(PhoneCallsTaskBigidApplication.class, args);

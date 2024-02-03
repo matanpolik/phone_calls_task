@@ -1,5 +1,6 @@
 package com.example.phone_calls_task_bigid.service;
 
+import com.example.phone_calls_task_bigid.model.DTO.PhoneCallDTO;
 import com.example.phone_calls_task_bigid.model.PhoneCall;
 import java.util.List;
 /**
@@ -11,7 +12,7 @@ public interface PhoneCallService {
      *
      * @param phonecall The phone call to be saved.
      */
-    void savePhoneCall(PhoneCall phonecall);
+    void savePhoneCall(PhoneCallDTO phonecallDTO);
 
     /**
      * Retrieves all phone calls associated with a specific phone number.
