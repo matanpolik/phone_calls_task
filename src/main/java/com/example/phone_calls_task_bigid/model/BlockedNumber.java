@@ -11,14 +11,12 @@ public class BlockedNumber {
     @Column(name = "phoneNumber")
     private String phoneNumber;
 
-    // Constructors, getters, and setters
     public BlockedNumber() {}
 
     public BlockedNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
     }
 
-    // Getters and setters
     public String getPhoneNumber() {
         return phoneNumber;
     }

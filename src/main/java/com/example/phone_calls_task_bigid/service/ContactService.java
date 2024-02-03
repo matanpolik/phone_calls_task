@@ -1,7 +1,7 @@
 package com.example.phone_calls_task_bigid.service;
-import com.example.phone_calls_task_bigid.model.Contact;
+
 import java.io.InputStream;
-import java.util.List;
+
 /**
  * Service interface for managing contacts.
  */

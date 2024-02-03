@@ -1,4 +1,5 @@
 package com.example.phone_calls_task_bigid.repository;
+
 import com.example.phone_calls_task_bigid.model.Contact;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

@@ -46,7 +46,9 @@ public class PhoneCall {
     }
 
     public Date getTime() {return time;}
+
     public void setTime(Date time) {this.time = time;}
+
     public String getCallType() {
         return callType;
     }

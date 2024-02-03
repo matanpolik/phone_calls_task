@@ -1,4 +1,5 @@
 package com.example.phone_calls_task_bigid.service;
+
 import java.io.InputStream;
 /**
  * Service interface for managing phone numbers in the blacklist.

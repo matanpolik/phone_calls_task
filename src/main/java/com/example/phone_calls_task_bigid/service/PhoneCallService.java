@@ -10,7 +10,7 @@ public interface PhoneCallService {
     /**
      * Saves a phone call to the database.
      *
-     * @param phonecall The phone call to be saved.
+     * @param phonecallDTO The phone call to be saved.
      */
     void savePhoneCall(PhoneCallDTO phonecallDTO);
 

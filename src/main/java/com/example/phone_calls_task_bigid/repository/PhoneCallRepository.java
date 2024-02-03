@@ -27,8 +27,4 @@ public interface PhoneCallRepository extends JpaRepository<PhoneCall, Long> {
      *         The list may be empty if no such calls are found.
      */
     List<PhoneCall> findByDurationGreaterThan(Integer duration);
-
-   /* @Modifying
-    @Query("UPDATE PhoneCall pc SET pc.phoneNumber = :newPhoneNumber WHERE pc.phoneNumber = :oldPhoneNumber")
-    int updatePhoneNumber(@Param("oldPhoneNumber") String oldPhoneNumber, @Param("newPhoneNumber") String newPhoneNumber);*/
 }

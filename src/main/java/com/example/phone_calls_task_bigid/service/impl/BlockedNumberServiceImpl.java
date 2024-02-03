@@ -1,4 +1,5 @@
 package com.example.phone_calls_task_bigid.service.impl;
+
 import com.example.phone_calls_task_bigid.model.BlockedNumber;
 import com.example.phone_calls_task_bigid.repository.BlockedNumberRepository;
 import com.example.phone_calls_task_bigid.service.BlockedNumberService;
@@ -10,9 +11,7 @@ import java.io.InputStreamReader;
 
 @Service
 public class BlockedNumberServiceImpl implements BlockedNumberService {
-
     private final BlockedNumberRepository blacklistRepository;
-
     public BlockedNumberServiceImpl(BlockedNumberRepository blacklistRepository) {
         this.blacklistRepository = blacklistRepository;
     }
