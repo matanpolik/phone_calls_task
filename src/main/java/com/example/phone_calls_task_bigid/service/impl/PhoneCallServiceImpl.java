@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -39,7 +40,6 @@ public class PhoneCallServiceImpl implements PhoneCallService {
         PhoneCall phoneCall = convertToPhoneCall(phoneCallDTO);
         validateAndSavePhoneCall(phoneCall);
     }
-
     private PhoneCall convertToPhoneCall(PhoneCallDTO phoneCallDTO) {
         PhoneCall phoneCall = new PhoneCall();
         // Convert String time to Date
@@ -52,16 +52,30 @@ public class PhoneCallServiceImpl implements PhoneCallService {
         phoneCall.setSavedContact(false);
         return phoneCall;
     }
-
     private Date parseStringToDate(String timeString) {
         // Use regular expression to match the required date format
         String dateFormatPattern = "\\d{2}-\\d{2}-\\d{4} \\d{2}:\\d{2}:\\d{2}";
         if (!timeString.matches(dateFormatPattern)) {
             throw new IllegalArgumentException("Invalid date format");
         }
+
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+        dateFormat.setLenient(false); // Disable lenient parsing
+
         try {
-            return dateFormat.parse(timeString);
+            Date parsedDate = dateFormat.parse(timeString);
+
+            // Validate day and month ranges
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(parsedDate);
+            int day = cal.get(Calendar.DAY_OF_MONTH);
+            int month = cal.get(Calendar.MONTH) + 1; // Month is zero-based
+
+            if (day < 1 || day > 31 || month < 1 || month > 12) {
+                throw new IllegalArgumentException("Invalid day or month");
+            }
+
+            return parsedDate;
         } catch (ParseException e) {
             throw new IllegalArgumentException("Error parsing date", e);
         }
